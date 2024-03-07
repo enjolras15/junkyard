@@ -1,0 +1,844 @@
+
+const gameName="戦略ゲーム";
+
+/*
+
+var obj={a:0,b:[1,1,1,1]};
+a=JSON.stringify(obj);
+b=JSON.parse(a);
+
+*/
+
+localStorage.setItem(gameName+"SaveData",0);
+
+
+
+SaveData=localStorage.getItem(gameName+"SaveData");
+
+over=0;
+
+data= new Array(10);
+
+if (SaveData==null || SaveData==0) {
+
+for (let i=0; i<data.length; i++) {
+
+data[i]={map:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],population:0,
+soldiers:300,tax:500,police:10,conqueror:0,food:300,morale:1};
+
+if (i==0) {
+
+data[i].conqueror=1;
+
+}
+
+else if (i==3) {
+
+data[i].conqueror=2;
+
+}
+
+else if (i==7) {
+
+data[i].conqueror=3;
+
+}
+
+else if (i==8) {
+
+data[i].conqueror=4;
+
+}
+
+if (data[i].conqueror==0) {
+
+data[i].police=20;
+
+}
+
+localStorage.setItem(gameName+"SaveData"+i,JSON.stringify(data[i]));
+localStorage.setItem(gameName+"SaveData",1);
+
+G=[500,500,500,500];
+
+localStorage.setItem(gameName+"G",G);
+
+}
+
+}
+
+else {
+
+for (let i=0; i<data.length; i++) {
+
+data[i]=localStorage.getItem(gameName+"SaveData"+i);
+
+data[i]=JSON.parse(data[i]);
+
+data[i].map+="";
+data[i].map=data[i].map.split(",");
+
+G=localStorage.getItem(gameName+"G");
+
+G=G.split(",");
+
+for (let i=0; i<G.length; i++) {
+
+G[i]=Math.floor(G[i]);
+
+}
+
+}
+
+}
+
+n=[0,0,0,0];
+
+for (let i=0; i<data.length; i++) {
+
+if (data[i].conqueror!=0) {
+
+n[data[i].conqueror-1]++;
+
+}
+
+}
+
+P=0;
+
+var num;
+
+count=0;
+
+png=["マス","民家","畑","捜査局"];
+
+var tr = document.createElement("tr");
+document.getElementById("field").appendChild(tr);
+
+for (let x = 0; x < data[P].map.length; x++) {
+
+let td = document.createElement("td");
+
+td.id=x;
+
+tr.appendChild(td);
+
+document.getElementById(x).innerHTML=('<img id="image" src=""></img>');
+
+document.getElementById("image").id="image"+x;
+
+count++;
+
+if (count==5) {
+
+var tr = document.createElement("tr");
+document.getElementById("field").appendChild(tr);
+
+count=0;
+
+}
+
+}
+
+
+
+main();
+
+button();
+
+function main() {
+
+draw();
+
+document.getElementById("text").innerHTML=('');
+
+document.getElementById("text").innerHTML=("土地"+(Math.floor(P)+1)+"<br>G "+G[0]+" 税収"+data[P].tax+'<br>人口'+data[P].population+
+'<br>食料生産'+data[P].food+'(消費'+Math.floor(data[P].soldiers+data[P].population)+
+') 戦力'+data[P].soldiers+"(士気"+data[P].morale+") 捜査官"+data[P].police);
+
+if (over==0) {
+
+setTimeout('main()',100);
+
+}
+
+else {
+
+
+
+}
+
+}
+
+
+
+
+
+function draw() {
+
+for (let x = 0; x < data[P].map.length; x++) {
+
+document.getElementById("image"+x).src="画像/"+png[data[P].map[x]]+".png";
+
+}
+
+}
+
+for (let y = 0; y <document.getElementById("field").rows.length ; y++) {
+
+for (let x = 0; x <document.getElementById("field").rows[y].cells.length ; x++) {
+
+document.getElementById("field").rows[y].cells[x].onclick = function() {
+
+
+if (num!==undefined) {
+
+document.getElementById(num).style.borderColor="black";
+
+}
+
+
+num=this.id;
+
+infomation(data[P].map[num]);
+
+}
+
+
+}
+
+}
+
+function infomation(l) {
+
+if (over==0) {
+
+document.getElementById(num).style.borderColor="red";
+
+document.getElementById("button").innerHTML=('<input type="image" src="画像/民家.png" OnClick="buy(P,1,100,0,num)">民家 100G</button>'+
+'<br><input type="image" src="画像/畑.png" OnClick="buy(P,2,100,0,num)">畑 100G</button>'+
+'<br><input type="image" src="画像/捜査局.png" OnClick="buy(P,3,400,0,num)">捜査局 400G</button>'+
+'<br><button OnClick="remove(P,num)">撤去</button>'+
+'<br><button OnClick="button()">戻る</button>');
+
+}
+
+}
+
+function button() {
+
+if (over==0) {
+
+if (num!==undefined) {
+
+document.getElementById(num).style.borderColor="black";
+
+}
+
+document.getElementById("button").innerHTML=('<button OnClick="mercenary(P,0)">傭兵雇用</button>戦力100 200G'+
+'<br><button OnClick="spy()">スパイ</button>300G'+
+'<br><button OnClick="attack(P)">攻撃</button>'+
+'<br><button OnClick="transport()">輸送</button>'+
+'<br><button OnClick="move()">移動</button>'+
+'<br><button OnClick="endturn()">ターン終了</button>');
+
+}
+
+}
+
+function buy(l,l2,l3,l4,l5) {
+
+if (G[l4]>=l3 && data[l].map[l5]==0) {
+
+data[l].map[l5]=l2;
+
+if (l2==1) {
+
+data[l].population+=100;
+tax(l);
+Isfull(l);
+
+}
+
+else if (l2==2) {
+
+data[l].food+=300;
+Isfull(l);
+
+}
+
+else if (l2==3) {
+
+data[l].police+=10;
+
+}
+
+G[l4]-=l3;
+
+save(l);
+
+}
+
+
+}
+
+function Isfull(l) {
+
+if (data[l].food>=Math.floor(data[l].soldiers+data[l].population)) {
+
+data[l].morale=1;
+
+}
+
+else {
+
+data[l].morale=0.5;
+
+}
+
+
+}
+
+function spy() {
+
+if (G[0]>=300) {
+
+document.getElementById("button").innerHTML=('');
+
+for (let i=0; i<10; i++) {
+
+if (data[i].conqueror!=1) {
+
+document.getElementById("button").innerHTML+=('<button id="button-1" OnClick="spy2(this.id.substr(6,1),0)"></button>'+" 成功率"+(100-data[i].police)+'%<br>');
+
+document.getElementById("button-1").innerHTML=("土地"+(i+1));
+document.getElementById("button-1").id="button"+i;
+
+}
+
+}
+
+document.getElementById("button").innerHTML+=('<button OnClick="button()">戻る</button>');
+
+}
+
+}
+
+function spy2(l,l2) {
+
+G[l2]-=300;
+
+rnd=Math.floor( Math.random() * 100 )+1;
+
+if ((100-data[l].police)>rnd) {
+
+if (l2==0) {
+
+document.getElementById("button").innerHTML=("スパイ成功"+
+'<br>敵の兵士'+data[l].soldiers+
+'<br><button OnClick="button()">戻る</button>');
+
+}
+
+else {
+
+return data[l].soldiers;
+
+}
+
+}
+
+else {
+
+if (l2==0) {
+
+document.getElementById("button").innerHTML=("スパイ失敗"+
+'<br><button OnClick="button()">戻る</button>');
+
+
+}
+
+else {
+
+return 99999999;
+
+}
+
+
+}
+
+
+
+}
+
+function move() {
+
+document.getElementById("button").innerHTML=('');
+
+for (let i=0; i<10; i++) {
+
+if (data[i].conqueror==1) {
+
+document.getElementById("button").innerHTML+=('<button id="button-1" OnClick="move2(this.id.substr(6,1))"></button><br>');
+
+document.getElementById("button-1").innerHTML=("土地"+(i+1));
+document.getElementById("button-1").id="button"+i;
+
+}
+
+}
+
+document.getElementById("button").innerHTML+=('<button OnClick="button()">戻る</button>');
+
+}
+
+function transport() {
+
+document.getElementById("button").innerHTML=('兵士'+data[P].soldiers+'<br><input id="soldiers"></input><br>');
+
+for (let i=0; i<10; i++) {
+
+if (data[i].conqueror==1) {
+
+document.getElementById("button").innerHTML+=('<button id="button-1" OnClick="move3(this.id.substr(6,1))"></button><br>');
+
+document.getElementById("button-1").innerHTML=("土地"+(i+1));
+document.getElementById("button-1").id="button"+i;
+
+}
+
+}
+
+document.getElementById("button").innerHTML+=('<button OnClick="button()">戻る</button>');
+
+}
+
+function move3(l) {
+
+let l2=Math.floor(document.getElementById("soldiers").value)
+
+data[l].soldiers+=l2;
+
+data[P].soldiers-=l2;
+
+Isfull(P);
+Isfull(l);
+
+transport();
+
+}
+
+function move2(l) {
+
+P=l;
+
+}
+
+function remove(l,l2) {
+
+if (data[l].map[l2]==1) {
+
+data[l].population-=100;
+
+}
+
+else if (data[l].map[l2]==2) {
+
+data[l].food-=300;
+
+}
+
+else if (data[l].map[l2]==3) {
+
+data[l].police-=10;
+
+}
+
+data[l].map[l2]=0;
+
+tax(l);
+
+save(l);
+
+}
+
+function attack(l) {
+
+document.getElementById("button").innerHTML=('');
+
+m="";
+
+o=l;
+
+for (let i=0; i<10; i++) {
+
+if (data[i].conqueror==2) {
+
+m="AI１領";
+
+}
+
+else if (data[i].conqueror==3) {
+
+m="AI２領";
+
+}
+
+else if (data[i].conqueror==4) {
+
+m="AI３領";
+
+}
+
+else if (data[i].conqueror==1) {
+
+m="占領済み";
+
+}
+
+else {
+
+m="";
+
+}
+
+document.getElementById("button").innerHTML+=('<button id="button-1" OnClick="war(o,this.id.substr(6,1),1)"></button>'+m+'<br>');
+
+document.getElementById("button-1").innerHTML=("土地"+(i+1));
+document.getElementById("button-1").id="button"+i;
+
+}
+
+document.getElementById("button").innerHTML+=('<button OnClick="button()">戻る</button>');
+
+}
+
+function war(l,l2,l3) {
+
+if (l3==2) {
+
+m="AI１国が";
+
+}
+
+else if (l3==3) {
+
+m="AI２国が";
+
+}
+
+else if (l3==4) {
+
+m="AI３国が";
+
+}
+
+else {
+
+m="";
+
+}
+
+if (data[l2].conqueror!=l3) {
+
+if (data[l].soldiers*data[l].morale>data[l2].soldiers*data[l2].morale) {
+
+data[l].soldiers-=data[l2].soldiers*data[l2].morale;
+
+data[l2].soldiers=0;
+
+data[l2].conqueror=l3;
+
+log(m+"土地"+(Math.floor(l2)+1)+"を占領しました。");
+
+if (l3==1) {
+
+let l4=0;
+
+for (let i=0; i<10; i++) {
+
+if (data[i].conqueror!=1) {
+
+l4++;
+
+}
+
+}
+
+if (l4==0) {
+
+log('ゲームクリアー');
+localStorage.setItem(gameName+"SaveData",0);
+
+}
+
+attack(l);
+
+}
+
+}
+
+else {
+
+data[l2].soldiers-=data[l].soldiers*data[l].morale;
+
+data[l].soldiers=0;
+
+log(m+"土地"+(Math.floor(l2)+1)+"に派遣した兵が全滅しました。");
+
+}
+
+}
+
+Isfull(l);
+Isfull(l2);
+
+}
+
+function mercenary(l,l2) {
+
+if (G[l2]>=200) {
+
+data[l].soldiers+=100;
+
+G[l2]-=200;
+
+}
+
+Isfull(l);
+
+save(l);
+
+}
+
+function save(l) {
+
+localStorage.setItem(gameName+"SaveData"+l,JSON.stringify(data[l]));
+localStorage.setItem(gameName+"G",G);
+
+}
+
+function tax(l) {
+
+data[l].tax=data[l].population/2+500;
+
+}
+
+function endturn() {
+
+for (let i=0; i<10; i++) {
+
+num2=0;
+
+if (data[i].conqueror==2) {
+
+AI(i,2);
+
+}
+
+else if (data[i].conqueror==3) {
+
+AI(i,3);
+
+}
+
+else if (data[i].conqueror==4) {
+
+AI(i,4);
+
+}
+
+}
+
+for (let i=0; i<10; i++) {
+
+if (data[i].conqueror==0) {
+
+data[i].soldiers+=50;
+
+}
+
+if (data[i].conqueror==1) {
+
+G[0]+=data[i].tax;
+
+}
+
+if (data[i].conqueror==2) {
+
+G[1]+=data[i].tax;
+
+}
+
+if (data[i].conqueror==3) {
+
+G[2]+=data[i].tax;
+
+}
+
+if (data[i].conqueror==4) {
+
+G[3]+=data[i].tax;
+
+}
+
+
+}
+
+if (over!=1) {
+
+log("あなたのターンです。");
+
+}
+
+}
+
+function Eattack(l,l2) {
+
+let m=[];
+
+for (let i=0;i<data.length;i++) {
+
+if (data[i].conqueror!=l2) {
+
+m[m.length]=i;
+
+}
+
+}
+
+
+let rnd=Math.floor( Math.random() * m.length );
+
+let l3=spy2(m[rnd],l2-1);
+
+if (data[l].soldiers*data[l].morale>l3 || data[m[rnd]].police>=60) {
+
+war(l,m[rnd],l2);
+
+}
+
+let i2=0;
+
+for (let i=0; i<10; i++) {
+
+if (data[i].conqueror==1) {
+
+i2++;
+
+}
+
+}
+
+if (i2==0) {
+log("ゲームオーバー");
+document.getElementById("button").innerHTML=('');
+localStorage.setItem(gameName+"SaveData",0);
+over=1;
+
+return;
+
+}
+
+if (data[P].conqueror!=1) {
+
+for (let i=0; i<10; i++) {
+
+if (data[i].conqueror==1) {
+
+P=i;
+
+}
+
+}
+
+}
+
+
+
+}
+
+function AI(l,l2) {
+
+while(G[l2-1]/n[l2]>0) {
+
+let D=0;
+
+for (let i=0; i<data[l].map.length; i++) {
+
+if (data[l].map[i]==0) {
+
+D++;
+
+}
+
+}
+
+if (Math.floor(data[l].soldiers+data[l].population)>=data[l].food && G[l2-1]>=100 && D>0) {
+
+Ebuy(l,2,100,l2);
+
+}
+
+else if (data[l].food>Math.floor(data[l].soldiers+data[l].population) && G[l2-1]>=200) {
+
+rnd=Math.floor( Math.random() * 3 )+1;
+
+if (rnd==1 && D>0) {
+
+Ebuy(l,1,100,l2);
+
+}
+
+else {
+
+mercenary(l,l2-1);
+
+}
+
+}
+
+else {
+
+if (G[l2-1]/n[l2]>=300) {
+
+Eattack(l,l2);
+
+}
+
+break;
+
+}
+
+
+}
+
+
+
+}
+
+function Ebuy(l,ll,ll2,l2) {
+
+for (let i=0; i<data[l].map.length; i++) {
+
+if (data[l].map[i]==0) {
+
+buy(l,ll,ll2,l2-1,i);
+
+break;
+
+}
+
+}
+
+return 1;
+
+}
+
+
+function log(i) {
+
+document.getElementById("log").innerHTML+=(i+"\n")
+
+
+}
